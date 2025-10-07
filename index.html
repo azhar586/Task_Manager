@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Task Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-content">
+                <h1><i class="fas fa-tasks"></i> Ultimate Task Manager</h1>
+                <div class="header-controls">
+                    <div class="current-time" id="currentTime"></div>
+                    <button id="themeToggle" class="icon-btn" title="Toggle theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button onclick="app.showNotifications()" class="icon-btn" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span id="notificationBadge" class="notification-badge hidden">0</span>
+                    </button>
+                    <button onclick="app.showExportModal()" class="icon-btn" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-screen">
+            <div class="login-container">
+                <h2>Welcome to Task Manager</h2>
+                <div id="loginForm">
+                    <p>Login to your account</p>
+                    <input type="text" id="loginUsername" placeholder="Username" maxlength="20">
+                    <input type="password" id="loginPassword" placeholder="Password">
+                    <button onclick="loginUser()" class="login-btn">Login</button>
+                    <p class="switch-auth">Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
+                </div>
+                
+                <div id="signupForm" class="hidden">
+                    <p>Create your account</p>
+                    <input type="text" id="signupUsername" placeholder="Choose username" maxlength="20">
+                    <input type="password" id="signupPassword" placeholder="Create password">
+                    <input type="password" id="confirmPassword" placeholder="Confirm password">
+                    <button onclick="createUser()" class="login-btn">Create Account</button>
+                    <p class="switch-auth">Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+                </div>
+                
+                <div class="feature-highlights">
+                    <div class="feature"><i class="fas fa-clock"></i> Time Tracking</div>
+                    <div class="feature"><i class="fas fa-bell"></i> Smart Reminders</div>
+                    <div class="feature"><i class="fas fa-chart-line"></i> Analytics</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App (Initially Hidden) -->
+        <div id="appContent" class="app-content hidden">
+            <!-- User Info -->
+            <div class="user-info">
+                <div class="user-welcome">
+                    <span>Welcome, <span id="currentUser">User</span>!</span>
+                    <div class="user-stats">
+                        <span class="level-badge">Level <span id="userLevel">1</span></span>
+                        <span class="xp-bar"><span id="xpProgress"></span></span>
+                    </div>
+                </div>
+                <button onclick="app.logout()" class="logout-btn">Logout</button>
+            </div>
+
+            <!-- Quick Actions Bar -->
+            <div class="quick-actions-bar">
+                <button onclick="app.showQuickTaskModal()" class="quick-action-btn">
+                    <i class="fas fa-plus"></i> Quick Task
+                </button>
+                <button onclick="app.startFocusTimer()" class="quick-action-btn">
+                    <i class="fas fa-hourglass-start"></i> Focus Timer
+                </button>
+                <button onclick="app.changeView('calendar')" class="quick-action-btn">
+                    <i class="fas fa-calendar"></i> Calendar
+                </button>
+                <button onclick="app.showAnalytics()" class="quick-action-btn">
+                    <i class="fas fa-chart-pie"></i> Analytics
+                </button>
+            </div>
+
+            <!-- Project & View Selection -->
+            <div class="view-section">
+                <select id="projectSelect" onchange="app.changeProject(this.value)">
+                    <option value="inbox">📥 Inbox</option>
+                    <option value="work">💼 Work</option>
+                    <option value="personal">🏠 Personal</option>
+                    <option value="shopping">🛒 Shopping</option>
+                </select>
+                
+                <div class="view-tabs">
+                    <button class="view-tab active" onclick="app.changeView('list')">
+                        <i class="fas fa-list"></i> List
+                    </button>
+                    <button class="view-tab" onclick="app.changeView('calendar')">
+                        <i class="fas fa-calendar"></i> Calendar
+                    </button>
+                    <button class="view-tab" onclick="app.changeView('board')">
+                        <i class="fas fa-columns"></i> Board
+                    </button>
+                </div>
+
+                <input type="text" id="newProjectInput" placeholder="New project..." maxlength="20">
+                <button onclick="app.addProject()" class="icon-btn">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+            <!-- Add Task Section -->
+            <div class="add-task-section">
+                <input type="text" id="taskInput" placeholder="What needs to be done? (Press Enter to add)" maxlength="200">
+                <div class="task-options">
+                    <select id="prioritySelect">
+                        <option value="low">🟢 Low</option>
+                        <option value="medium">🟡 Medium</option>
+                        <option value="high">🔴 High</option>
+                        <option value="urgent">🚨 Urgent</option>
+                    </select>
+                    
+                    <div class="datetime-inputs">
+                        <input type="date" id="dueDateInput">
+                        <input type="time" id="dueTimeInput">
+                    </div>
+                    
+                    <input type="text" id="tagsInput" placeholder="Tags (comma separated)">
+                    
+                    <select id="timeEstimateSelect">
+                        <option value="">No estimate</option>
+                        <option value="15">15 minutes</option>
+                        <option value="30">30 minutes</option>
+                        <option value="60">1 hour</option>
+                        <option value="120">2 hours</option>
+                    </select>
+                </div>
+                <button onclick="app.addTask()" class="add-btn">
+                    <i class="fas fa-plus"></i> Add Task
+                </button>
+            </div>
+
+            <!-- Timer Section -->
+            <div id="timerSection" class="timer-section hidden">
+                <div class="timer-display">
+                    <span id="timerTaskName">Focus Timer</span>
+                    <span id="timerDisplay">25:00</span>
+                    <div class="timer-controls">
+                        <button onclick="app.timerControl('start')" id="timerStart" class="timer-btn">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button onclick="app.timerControl('pause')" id="timerPause" class="timer-btn hidden">
+                            <i class="fas fa-pause"></i>
+                        </button>
+                        <button onclick="app.timerControl('stop')" class="timer-btn">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="search-filter-section">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search tasks..." oninput="app.searchTasks(this.value)">
+                </div>
+                <div class="filter-buttons">
+                    <button onclick="app.filterTasks('all')" class="filter-btn active">All</button>
+                    <button onclick="app.filterTasks('today')" class="filter-btn">Today</button>
+                    <button onclick="app.filterTasks('urgent')" class="filter-btn urgent-filter">Urgent</button>
+                    <button onclick="app.filterTasks('completed')" class="filter-btn">Completed</button>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalTasks">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completedTasks">0</div>
+                    <div class="stat-label">Done</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="urgentTasks">0</div>
+                    <div class="stat-label">Urgent</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="timeTracked">0h</div>
+                    <div class="stat-label">Tracked</div>
+                </div>
+            </div>
+
+            <!-- Task List View -->
+            <div id="listView" class="task-list">
+                <!-- Tasks will be rendered here -->
+            </div>
+
+            <!-- Calendar View -->
+            <div id="calendarView" class="calendar-view hidden">
+                <div class="calendar-header">
+                    <button onclick="app.changeCalendarMonth(-1)" class="calendar-nav">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <h3 id="calendarMonthYear">January 2024</h3>
+                    <button onclick="app.changeCalendarMonth(1)" class="calendar-nav">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div id="calendarGrid" class="calendar-grid">
+                    <!-- Calendar will be generated here -->
+                </div>
+            </div>
+
+            <!-- Board View -->
+            <div id="boardView" class="board-view hidden">
+                <div class="board-columns">
+                    <div class="board-column" data-status="todo">
+                        <h3>To Do</h3>
+                        <div class="board-tasks" id="todoTasks"></div>
+                    </div>
+                    <div class="board-column" data-status="inprogress">
+                        <h3>In Progress</h3>
+                        <div class="board-tasks" id="inProgressTasks"></div>
+                    </div>
+                    <div class="board-column" data-status="done">
+                        <h3>Done</h3>
+                        <div class="board-tasks" id="doneTasks"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button onclick="app.clearCompleted()" class="action-btn">
+                    <i class="fas fa-trash"></i> Clear Completed
+                </button>
+                <button onclick="app.markAllCompleted()" class="action-btn">
+                    <i class="fas fa-check-double"></i> Complete All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export/Import Modal -->
+    <div id="exportModal" class="modal hidden">
+        <div class="modal-content">
+            <h3><i class="fas fa-cog"></i> Settings & Data</h3>
+            <div class="modal-actions">
+                <button onclick="app.exportData()" class="modal-btn">
+                    <i class="fas fa-download"></i> Export Data
+                </button>
+                <button onclick="document.getElementById('importFile').click()" class="modal-btn">
+                    <i class="fas fa-upload"></i> Import Data
+                </button>
+                <input type="file" id="importFile" accept=".json" style="display: none" onchange="app.importData(this.files[0])">
+                <button onclick="app.showChangePassword()" class="modal-btn">
+                    <i class="fas fa-key"></i> Change Password
+                </button>
+            </div>
+            <button onclick="app.hideExportModal()" class="close-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal hidden">
+        <div class="modal-content">
+            <h3><i class="fas fa-key"></i> Change Password</h3>
+            <div class="password-form">
+                <input type="password" id="currentPassword" placeholder="Current password">
+                <input type="password" id="newPassword" placeholder="New password">
+                <input type="password" id="confirmNewPassword" placeholder="Confirm new password">
+            </div>
+            <div class="modal-actions">
+                <button onclick="app.changePassword()" class="modal-btn">Change Password</button>
+                <button onclick="app.hideChangePassword()" class="close-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Task Modal -->
+    <div id="quickTaskModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Add Quick Task</h3>
+            <input type="text" id="quickTaskInput" placeholder="Task description..." maxlength="100">
+            <div class="quick-task-options">
+                <select id="quickPriority">
+                    <option value="medium">🟡 Medium</option>
+                    <option value="high">🔴 High</option>
+                </select>
+                <input type="datetime-local" id="quickDueDateTime">
+            </div>
+            <div class="modal-actions">
+                <button onclick="app.addQuickTask()" class="modal-btn">Add Task</button>
+                <button onclick="app.hideQuickTaskModal()" class="close-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Panel -->
+    <div id="notificationsPanel" class="notifications-panel hidden">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <button onclick="app.hideNotifications()" class="icon-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="notificationsList" class="notifications-list">
+            <!-- Notifications will appear here -->
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
